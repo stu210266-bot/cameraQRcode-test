@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Camera + QRCode</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f5f5f5;
+}
+
+video {
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+}
+
+#reader {
+    width: 300px;
+    margin: auto;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #007bff;
+    color: white;
+}
+
+#result {
+    font-size: 18px;
+    margin-top: 10px;
+    color: green;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📷 攝影機 + QR Code 掃描</h2>
+
+<!-- 攝影機 -->
+<video id="video" autoplay playsinline></video>
+<br>
+
+<button onclick="startCamera()">開啟攝影機</button>
+<button onclick="takePhoto()">拍照</button>
+
+<br>
+<img id="photo" width="300">
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<hr>
+
+<!-- QR Code 掃描 -->
+<h3>🔍 QR Code 掃描</h3>
+<div id="reader"></div>
+<button onclick="startQR()">開始掃描</button>
+<button onclick="stopQR()">停止掃描</button>
+
+<div id="result"></div>
+
+<script>
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+        video.srcObject = stream;
+    })
+    .catch(err => {
+        alert("無法開啟攝影機：" + err);
+    });
+}
+
+function takePhoto() {
+    let context = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    context.drawImage(video, 0, 0);
+
+    let image = canvas.toDataURL('image/png');
+    document.getElementById('photo').src = image;
+}
+
+// ===== QR Code 掃描 =====
+let html5QrCode;
+
+function startQR() {
+    html5QrCode = new Html5Qrcode("reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: 250
+        },
+        qrCodeMessage => {
+            document.getElementById('result').innerText = "掃描結果：" + qrCodeMessage;
+            stopQR(); // 掃到就停止（可拿掉）
+        },
+        errorMessage => {
+            // 可忽略錯誤
+        }
+    );
+}
+
+function stopQR() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            console.log("QR 停止");
+        });
+    }
+}
+</script>
+
+</body>
+</html>
