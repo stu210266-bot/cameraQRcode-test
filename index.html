@@ -14,24 +14,26 @@ body {
 }
 
 #reader {
-    width: 300px;
-    margin: auto;
+    width: 320px;
+    margin: 30px auto;
+    border-radius: 15px;
+    overflow: hidden;
 }
 
 button {
-    padding: 10px 20px;
-    margin: 10px;
-    font-size: 16px;
+    padding: 12px 25px;
+    font-size: 18px;
     border: none;
-    border-radius: 8px;
-    background: #28a745;
+    border-radius: 10px;
+    background: #007bff;
     color: white;
+    cursor: pointer;
 }
 
 #result {
-    font-size: 20px;
-    margin-top: 15px;
-    color: blue;
+    margin-top: 20px;
+    font-size: 18px;
+    color: green;
     word-break: break-all;
 }
 </style>
@@ -39,17 +41,25 @@ button {
 
 <body>
 
-<h2>🔍 QR Code 掃描器</h2>
+<h2>🔍 QR Code 掃描</h2>
 
 <div id="reader"></div>
 
-<button onclick="startScan()">開始掃描</button>
-<button onclick="stopScan()">停止掃描</button>
+<button onclick="toggleCamera()">開啟掃描</button>
 
 <div id="result">尚未掃描</div>
 
 <script>
-let qr;
+let qr = null;
+let isRunning = false;
+
+function toggleCamera() {
+    if (!isRunning) {
+        startScan();
+    } else {
+        stopScan();
+    }
+}
 
 function startScan() {
     qr = new Html5Qrcode("reader");
@@ -66,7 +76,10 @@ function startScan() {
         (errorMessage) => {
             // 忽略錯誤
         }
-    ).catch(err => {
+    ).then(() => {
+        isRunning = true;
+        document.querySelector("button").innerText = "關閉掃描";
+    }).catch(err => {
         alert("無法開啟攝影機：" + err);
     });
 }
@@ -74,7 +87,9 @@ function startScan() {
 function stopScan() {
     if (qr) {
         qr.stop().then(() => {
-            document.getElementById("result").innerText = "已停止掃描";
+            isRunning = false;
+            document.querySelector("button").innerText = "開啟掃描";
+            document.getElementById("reader").innerHTML = "";
         });
     }
 }
